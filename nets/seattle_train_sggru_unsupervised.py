@@ -30,9 +30,9 @@ def training_routine(args):
     pred_len = args.pred_len
     patience = args.patience
     name = args.save_name
-    speed_matrix, A, FFR = Seattle_data('torch-gsp/data/Seattle_Loop_Dataset/')
+    speed_matrix, A, FFR = Seattle_data('data/Seattle_Loop_Dataset/') #put seattle Loop dataset in this directory
     N = speed_matrix.shape[1]
-    #speed_matrix  = speed_matrix.values
+
     S = int(args.sample_perc*N/100)
     if args.F_perc is None:
         F = int(S/3)
@@ -48,11 +48,11 @@ def training_routine(args):
     if args.e_opt:
         print(args.sample_perc)
         if args.sample_perc == 25:
-            sample = np.load( 'torch-gsp/data/Seattle_Loop_Dataset/sample_opt25.npy')[0]
+            sample = np.load( 'data/Seattle_Loop_Dataset/sample_opt25.npy')[0]
         elif args.sample_perc == 50:
-            sample = np.load( 'torch-gsp/data/Seattle_Loop_Dataset/sample_opt50.npy')[0]
+            sample = np.load( 'data/Seattle_Loop_Dataset/sample_opt50.npy')[0]
         elif args.sample_perc == 75:
-            sample = np.load( 'torch-gsp/data/Seattle_Loop_Dataset/sample_opt75.npy')[0]
+            sample = np.load( 'data/Seattle_Loop_Dataset/sample_opt75.npy')[0]
         else:    
             sample = greedy_e_opt(V[:,Fs],S)
         
@@ -88,13 +88,13 @@ def training_routine(args):
 
     loss = (sggru_loss,sggru_test)
     os.makedirs("models_and_losses/", exsist_ok=True)
-    #torch.save(sggru, "models_and_losses/{}.pt".format(name))
-    #np.save("models_and_losses/{}.npy".format(name),loss)
+    torch.save(sggru, "models_and_losses/{}.pt".format(name))
+    np.save("models_and_losses/{}.npy".format(name),loss)
      
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Semi-Supervised Prediction\n SeattleLoop dataset ')
+    parser = argparse.ArgumentParser(description='Semi-Supervised Prediction\n SeattleLoop dataset \n download link: https://github.com/zhiyongc/Seattle-Loop-Data ')
     parser.add_argument('--epochs', type=int, default = 100, help='maximum number of epochs before stopping training')
     parser.add_argument('--lr', type=float, default = 1e-4, help='starting learn rate' )
     parser.add_argument('--patience', type=int, default = 10, help='number of consecutive non-improving validation loss epochs before stop training')
