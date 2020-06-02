@@ -65,12 +65,14 @@ def training_routine(args):
     train_dataloader, valid_dataloader, test_dataloader, max_speed = PrepareSampledDataset(speed_matrix, sample, 
                                                                                   V,freqs,T = True ,pred_len=pred_len, sampling='reduce')
                                                                   
-    print("Preprocessing time:", time.time()-pre_time)
-        
+    print("Preprocessing time:", time.time()-pre_time)        
 
 
     layer = SpectralGraphForecast(V, sample,freqs, rnn = 'gru')
-    sggru = model(V,sample,freqs, layer,l1=0,l2=0.0,supervised = False).to(device)
+    if args.supeervised:
+        sggru = model(V,sample,freqs, layer,l1=0,l2=0.0,supervised = True).to(device)
+    else:
+        sggru = model(V,sample,freqs, layer,l1=0,l2=0.0,supervised = False).to(device)
     
     pre_time = time.time()
 
@@ -105,7 +107,7 @@ if __name__ == "__main__":
     parser.add_argument('--sample-seed',type=int,default=1, help='number of run with uniformely random samples. Only used if --e-opt is False')
     parser.add_argument('--pred-len', type=int,default=1, help='prediction horizon')
     parser.add_argument('--save-name', type=str, default='sggru_S50_F17_opt_pred1', help='name of file')
-
+    parser.add_argument('--supervised', action='store_true', help='if training is supervised or semi-supervised. Deafault is semi-supervised')
     args = parser.parse_args()
     training_routine(args)
 
