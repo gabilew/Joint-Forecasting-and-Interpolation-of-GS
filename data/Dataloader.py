@@ -265,11 +265,9 @@ def PrepareSampledDataset(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len = 10
             transformed.append(Tx)
         time_T += time.time()-time_pre
         if unsup:
-            speed_labels_unknown.append(features_unknown[i+seq_len+pred_len-1:i+seq_len+pred_len]) 
-            
+            speed_labels_unknown.append(features_unknown[i+seq_len+pred_len-1:i+seq_len+pred_len])             
         
-        speed_labels.append(matrix.iloc[i+seq_len+pred_len-1:i+seq_len+pred_len].values) amostrar 
-             
+        speed_labels.append(matrix.iloc[i+seq_len+pred_len-1:i+seq_len+pred_len].values)              
     speed_sequences, speed_labels, speed_labels_unknown = np.asarray(speed_sequences), np.asarray(speed_labels),np.asarray(speed_labels_unknown)
     
     
@@ -285,16 +283,12 @@ def PrepareSampledDataset(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len = 10
     
     if unsup:
         train_data, train_label = speed_sequences[:train_index], speed_labels_unknown[:train_index]
-
-        valid_data, valid_label = speed_sequences[train_index:valid_index], speed_labels_unknown[train_index:valid_index]
-    
+        valid_data, valid_label = speed_sequences[train_index:valid_index], speed_labels_unknown[train_index:valid_index]  
        
     else:
 
         train_data, train_label = speed_sequences[:train_index], speed_labels[:train_index]
-
-        valid_data, valid_label = speed_sequences[train_index:valid_index], speed_labels[train_index:valid_index]
-    
+        valid_data, valid_label = speed_sequences[train_index:valid_index], speed_labels[train_index:valid_index]    
     test_data, test_label = speed_sequences[valid_index:], speed_labels[valid_index:]
 
     train_data, train_label = torch.Tensor(train_data).to(device), torch.Tensor(train_label).to(device)
@@ -328,14 +322,10 @@ def PrepareSampledDataset(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len = 10
 def PrepareSequence(data, seq_len = 10, pred_len = 1):
   
     time_len = data.shape[0]    
-    sequences, labels = [], []
-  
-    for i in range(time_len - seq_len - pred_len):
-       
-        sequences.append(data[i:i+seq_len])              
-        
-        labels.append(data[i+seq_len+pred_len-1:i+seq_len+pred_len])
-             
+    sequences, labels = [], []  
+    for i in range(time_len - seq_len - pred_len):       
+        sequences.append(data[i:i+seq_len])        
+        labels.append(data[i+seq_len+pred_len-1:i+seq_len+pred_len])             
     return  np.asarray(sequences), np.asarray(labels)
     
     
@@ -374,9 +364,7 @@ def Dataloader(data, label, gpu = True,  BATCH_SIZE = 40, suffle = False):
         data, label = torch.Tensor(data).cuda(), torch.Tensor(label ).cuda()
     else:
         data, label = torch.Tensor(data), torch.Tensor(label )
-
-    dataset = utils.TensorDataset(data, label)
-    
+    dataset = utils.TensorDataset(data, label)    
     dataloader = utils.DataLoader(dataset, batch_size = BATCH_SIZE, shuffle=suffle, drop_last = True)
     return dataloader
 

@@ -182,7 +182,7 @@ verbose=1, use_gpu = True, sample = None):
         min_loss.append(best_model.loss(outputs,y).cpu().data.numpy())   
 
 
-    return best_model, [,mse_epochs_train ,
+    return best_model, [mse_epochs_train ,
     mse_epochs_valid ,
     mae_epochs_train ,
     mae_epochs_valid ,
