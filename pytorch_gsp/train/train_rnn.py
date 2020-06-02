@@ -268,11 +268,10 @@ def TestModel(model, test_dataloader, max_speed, pred_len = 1):
 
     losses_mse = np.array(losses_mse)
     mean_l1 = np.mean(losses_l1, axis = 0) 
-    std_l1 = np.std(losses_l1, axis = 0) 
     rmse = np.mean(np.sqrt(losses_mse))
-    print('Tested: L1_mean: {}, L1_std : {}, RMSE : {}, MAPE : {}'.format(mean_l1, std_l1, rmse,np.mean(losses_mape)))
+    print('Tested: L1_mean: {},  RMSE : {}, MAPE : {}'.format(mean_l1, rmse,np.mean(losses_mape)))
   
 
-    return [losses_l1, losses_mse, mean_l1, std_l1, np.mean(losses_mape), time.time()-pre_time]
+    return [losses_l1, losses_mse, mean_l1,  np.mean(losses_mape), time.time()-pre_time]
 
 
