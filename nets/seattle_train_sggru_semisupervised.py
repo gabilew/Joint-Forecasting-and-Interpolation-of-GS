@@ -42,11 +42,13 @@ def training_routine(args):
     assert(S>F) # the sampling set must be larger than the spectral support
 
     #compute gft
-    F_list, V = spectral_components(A,np.array(speed_matrix)[:100] )
-    freqs = np.arange(0,F,1)
+    F_list, V = spectral_components(A,np.array(speed_matrix)[:1000] )
+    if args.supervised:
+        freqs = F_list[:F]
+    else:
+        freqs = np.arange(0,F,1)
 
     if args.e_opt:
-        print(args.sample_perc)
         if args.sample_perc == 25:
             sample = np.load( 'data/Seattle_Loop_Dataset/sample_opt25.npy')[0]
         elif args.sample_perc == 50:
@@ -56,9 +58,7 @@ def training_routine(args):
         else:    
             sample = greedy_e_opt(V[:,Fs],S)
         
-    else: sample = np.sort(np.random.choice(np.arange(N), S, replace = False))
-
-    
+    else: sample = np.sort(np.random.choice(np.arange(N), S, replace = False))    
 
     S = len(sample)        
     pre_time = time.time()
@@ -69,7 +69,7 @@ def training_routine(args):
 
 
     layer = SpectralGraphForecast(V, sample,freqs, rnn = 'gru')
-    if args.supeervised:
+    if args.supervised:
         sggru = model(V,sample,freqs, layer,l1=0,l2=0.0,supervised = True).to(device)
     else:
         sggru = model(V,sample,freqs, layer,l1=0,l2=0.0,supervised = False).to(device)
