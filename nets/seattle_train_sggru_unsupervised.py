@@ -69,7 +69,7 @@ def training_routine(args):
         
 
 
-    layer = SpectralGraphRNN(V, sample,freqs, rnn = 'gru')
+    layer = SpectralGraphForecast(V, sample,freqs, rnn = 'gru')
     sggru = model(V,sample,freqs, layer,l1=0,l2=0.0,supervised = False).to(device)
     
     pre_time = time.time()
