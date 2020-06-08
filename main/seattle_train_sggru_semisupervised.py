@@ -7,9 +7,9 @@ import pandas as pd
 import time
 
 from data.Load_data import Seattle_data
-from data.Dataloader import PrepareSampledDataset
+from data.Dataloader import *
 
-from pytorch_gsp.train.train_rnn import  TestModel,  TrainModel
+from pytorch_gsp.train.train_rnn import  Evaluate,  Train
 from pytorch_gsp.utils.gsp import ( greedy_e_opt, spectral_components)
 from pytorch_gsp.models.sggru import *
 
@@ -30,7 +30,8 @@ def training_routine(args):
     pred_len = args.pred_len
     patience = args.patience
     name = args.save_name
-    speed_matrix, A, FFR = Seattle_data('data/Seattle_Loop_Dataset/') #put seattle Loop dataset in this directory
+    speed_matrix, A, FFR = Seattle_data('torch-gsp/data/Seattle_Loop_Dataset/') #put seattle Loop dataset in this directory
+    speed_matrix = speed_matrix[:1000]
     N = speed_matrix.shape[1]
 
     S = int(args.sample_perc*N/100)
@@ -62,7 +63,7 @@ def training_routine(args):
 
     S = len(sample)        
     pre_time = time.time()
-    train_dataloader, valid_dataloader, test_dataloader, max_speed = PrepareSampledDataset(speed_matrix, sample, 
+    train_dataloader, valid_dataloader, test_dataloader, max_speed = SampledDataloader(speed_matrix, sample, 
                                                                                   V,freqs,T = True ,pred_len=pred_len, sampling='reduce')
                                                                   
     print("Preprocessing time:", time.time()-pre_time)        
@@ -81,10 +82,10 @@ def training_routine(args):
     print("Spectral sample size: {}".format(F))
     print("Initial learning rate: {}".format(lr))
 
-    sggru,sggru_loss= TrainModel(sggru ,train_dataloader, valid_dataloader, num_epochs = epochs, learning_rate = lr,patience=patience,min_delta=1e-6, sample = sample)
+    sggru,sggru_loss= Train(sggru ,train_dataloader, valid_dataloader, num_epochs = epochs, learning_rate = lr,patience=patience,min_delta=1e-6, sample = sample)
     print("Training time:", time.time()-pre_time)
     pre_time = time.time()
-    sggru_test = TestModel(sggru.to(device), test_dataloader, max_speed )
+    sggru_test = Evaluate(sggru.to(device), test_dataloader, max_speed )
     print("Test time:", time.time()-pre_time)
     name = 'sggru'
 
@@ -110,5 +111,4 @@ if __name__ == "__main__":
     parser.add_argument('--supervised', action='store_true', help='if training is supervised or semi-supervised. Deafault is semi-supervised')
     args = parser.parse_args()
     training_routine(args)
-
 

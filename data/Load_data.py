@@ -18,6 +18,16 @@ def USA_data(directory ):
 
 
 def Seattle_data(directory , binary=False):
+    """
+    Seattle_data:  https://github.com/zhiyongc/Graph_Convolutional_LSTM/blob/master/Code_V2/HGC_LSTM%20%26%20Experiments.ipynb
+
+    Args:
+        directory ([type]): [description]
+        binary (bool, optional): [description]. Defaults to False.
+
+    Returns:
+        [type]: [description]
+    """
     speed_matrix =  pd.read_pickle( directory + 'speed_matrix_2015',)
     A = np.load( directory + 'Loop_Seattle_2015_A.npy')
 

@@ -1,4 +1,5 @@
-
+### dataloaders
+### modified from https://github.com/zhiyongc/Graph_Convolutional_LSTM/blob/master/Code_V2/HGC_LSTM%20%26%20Experiments.ipynb
 import time
 
 import matplotlib.pyplot as plt
@@ -10,7 +11,8 @@ from torch_gsp.utils.gsp import compute_sample, complement
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 
-def PrepareDatasetMissingVal(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len = 10, pred_len = 1, train_proportion = 0.7,
+
+def DataloaderMissingVal(matrix,samp, V , freqs , batch_size = 40, seq_len = 10, pred_len = 1, train_proportion = 0.7,
  valid_proportion = 0.2,T = False,seed = 10 , nan = 0,A = None):
     
     time_len = matrix.shape[0]
@@ -19,7 +21,7 @@ def PrepareDatasetMissingVal(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len =
 
     if samp is None:
         samp = np.arange(matrix.shape[1])
-    speed_sequences, speed_labels,speed_labels_unknown = [], [], []
+    recurrent_features, labels,labels_unknown = [], [], []
   
     if T :
         assert(freqs is not None)
@@ -42,52 +44,51 @@ def PrepareDatasetMissingVal(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len =
     
     for i in range(time_len - seq_len - pred_len):  
         features = features_nan[i:i+seq_len]        
-        speed_sequences.append(features)
+        recurrent_features.append(features)
 
         if T :         
+           
             Vf = V[:, freqs]
-            n = Vf.shape[0]
-            Ds = np.zeros(n)
-            Ds[samp] = 1
-            Ds = np.diag(Ds)
-            Vft = Vf.conj().T
-            Ps = Ds[:, samp]
-            Tx = (Vft@Ps@(features.T)).T
+            Psi = np.zeros(Vf.shape[0])
+            Psi[sample] = 1
+            Psi = np.diag(Psi)
+            Psi = Psi[:, sample]
+            Tx = (Vf.T@Ps@(features.T)).T
             transformed.append(Tx)        
       
         
-        speed_labels.append(matrix.iloc[i+seq_len:i+seq_len+pred_len].values)
-        speed_labels_unknown.append(features_nan[i+seq_len:i+seq_len+pred_len])
+        labels.append(matrix.iloc[i+seq_len:i+seq_len+pred_len].values)
+        labels_unknown.append(features_nan[i+seq_len:i+seq_len+pred_len])
              
-    speed_sequences, speed_labels, speed_labels_unknown = np.asarray(speed_sequences), np.asarray(speed_labels),np.asarray(speed_labels_unknown)
+    recurrent_features, labels, labels_unknown = np.asarray(recurrent_features), np.asarray(labels),np.asarray(labels_unknown)
     
     
     if T:
         transformed = np.asarray(transformed)
         
-    if len(speed_labels.shape) ==3:
-        speed_labels = speed_labels[:,-1,:]
-        speed_labels_unknown = speed_labels_unknown[:,-1,:]
+    if len(labels.shape) ==3:
+        labels = labels[:,-1,:]
+        labels_unknown = labels_unknown[:,-1,:]
 
-    samp_size = speed_sequences.shape[0]    
+    samp_size = recurrent_features.shape[0]    
     index = np.arange(samp_size, dtype = int)    
 
     train_index = int(np.floor(samp_size * train_proportion))
     valid_index = int(np.floor(samp_size * ( train_proportion + valid_proportion)))          
    
 
-    train_data, train_label = speed_sequences[:train_index], speed_labels[:train_index]
-    valid_data, valid_label = speed_sequences[train_index:valid_index], speed_labels[train_index:valid_index]    
-    test_data, test_label = speed_sequences[valid_index:], speed_labels[valid_index:]
+    train_data, train_label = recurrent_features[:train_index], labels[:train_index]
+    valid_data, valid_label = recurrent_features[train_index:valid_index], labels[train_index:valid_index]    
+    test_data, test_label = recurrent_features[valid_index:], labels[valid_index:]
 
-    train_data, train_label = torch.Tensor(train_data).to(device), torch.Tensor(train_label).to(device)
-    valid_data, valid_label = torch.Tensor(valid_data).to(device), torch.Tensor(valid_label).to(device)
-    test_data, test_label = torch.Tensor(test_data).to(device), torch.Tensor(test_label).to(device)
+    train_data, train_label = torch.Tensor(train_data) , torch.Tensor(train_label)
+    valid_data, valid_label = torch.Tensor(valid_data) , torch.Tensor(valid_label)
+    test_data, test_label = torch.Tensor(test_data) , torch.Tensor(test_label)
 
     if T:
-        train_transf = torch.Tensor(transformed[:train_index]).to(device)
-        valid_transf = torch.Tensor(transformed[train_index:valid_index]).to(device)
-        test_transf = torch.Tensor(transformed[valid_index:]).to(device)
+        train_transf = torch.Tensor(transformed[:train_index]) 
+        valid_transf = torch.Tensor(transformed[train_index:valid_index]) 
+        test_transf = torch.Tensor(transformed[valid_index:]) 
         train_data = torch.cat((train_data, train_transf),dim = 2)
         valid_data = torch.cat((valid_data, valid_transf),dim = 2)
         test_data = torch.cat((test_data, test_transf),dim = 2)
@@ -96,13 +97,13 @@ def PrepareDatasetMissingVal(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len =
     valid_dataset = utils.TensorDataset(valid_data, valid_label)
     test_dataset = utils.TensorDataset(test_data, test_label)
 
-    train_dataloader = utils.DataLoader(train_dataset, batch_size = BATCH_SIZE, shuffle=True, drop_last = True)
-    valid_dataloader = utils.DataLoader(valid_dataset, batch_size = BATCH_SIZE, shuffle=True, drop_last = True)
+    train_dataloader = utils.DataLoader(train_dataset, batch_size = batch_size, shuffle=True, drop_last = True)
+    valid_dataloader = utils.DataLoader(valid_dataset, batch_size = batch_size, shuffle=True, drop_last = True)
     test_dataloader = utils.DataLoader(test_dataset, batch_size = len(test_label), shuffle=False, drop_last = False)
 
     return train_dataloader, valid_dataloader, test_dataloader, max_val
 
-def PrepareNoisyDataset(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len = 10, pred_len = 1, train_proportion = 0.7,
+def NoisyDataloader(matrix,samp, V , freqs , batch_size = 40, seq_len = 10, pred_len = 1, train_proportion = 0.7,
      valid_proportion = 0.2,T = False,sigma = 0,seed = 10 ):
 
     time_len = matrix.shape[0]
@@ -112,7 +113,7 @@ def PrepareNoisyDataset(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len = 10, 
     if samp is None:
         samp = np. arange(matrix.shape[1])
     
-    speed_sequences, speed_labels,speed_labels_unknown = [], [], []
+    recurrent_features, labels,labels_unknown = [], [], []
   
     if T :
         assert(freqs is not None)
@@ -124,48 +125,46 @@ def PrepareNoisyDataset(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len = 10, 
 
     for i in range(time_len - seq_len - pred_len):  
         features = matrix.iloc[i:i+seq_len].values+ noise[i:i+seq_len]        
-        speed_sequences.append(features)
+        recurrent_features.append(features)
 
         if T :    
-            Vf = V[:, freqs]
-            n = Vf.shape[0]
-            Ds = np.zeros(n)
-            Ds[samp] = 1
-            Ds = np.diag(Ds)
-            Vft = Vf.conj().T
-            Ps = Ds[:, samp]
-            Tx = (Vft@Ps@(features.T)).T
+            Vf = V[:, freqs]            
+            Psi = np.zeros(Vf.shape[0])
+            Psi[samp] = 1
+            Psi = np.diag(Psi)
+            Psi = Psi[:, samp]
+            Tx = (Vft@Psi@(features.T)).T
             transformed.append(Tx)             
             
         
-        speed_labels.append(matrix.iloc[i+seq_len:i+seq_len+pred_len].values)             
-    speed_sequences, speed_labels, speed_labels_unknown = np.asarray(speed_sequences), np.asarray(speed_labels),np.asarray(speed_labels_unknown)
+        labels.append(matrix.iloc[i+seq_len:i+seq_len+pred_len].values)             
+    recurrent_features, labels, labels_unknown = np.asarray(recurrent_features), np.asarray(labels),np.asarray(labels_unknown)
     
     
     if T:
         transformed = np.asarray(transformed)        
     
-    samp_size = speed_sequences.shape[0]    
+    samp_size = recurrent_features.shape[0]    
     index = np.arange(samp_size, dtype = int)    
 
     train_index = int(np.floor(samp_size * train_proportion))
     valid_index = int(np.floor(samp_size * ( train_proportion + valid_proportion)))
     
-    if len(speed_labels.shape) ==3:
-        speed_labels = speed_labels[:,-1,:]
+    if len(labels.shape) ==3:
+        labels = labels[:,-1,:]
    
-    train_data, train_label = speed_sequences[:train_index], speed_labels[:train_index]
-    valid_data, valid_label = speed_sequences[train_index:valid_index], speed_labels[train_index:valid_index]    
-    test_data, test_label = speed_sequences[valid_index:], speed_labels[valid_index:]
+    train_data, train_label = recurrent_features[:train_index], labels[:train_index]
+    valid_data, valid_label = recurrent_features[train_index:valid_index], labels[train_index:valid_index]    
+    test_data, test_label = recurrent_features[valid_index:], labels[valid_index:]
 
-    train_data, train_label = torch.Tensor(train_data).to(device), torch.Tensor(train_label).to(device)
-    valid_data, valid_label = torch.Tensor(valid_data).to(device), torch.Tensor(valid_label).to(device)
-    test_data, test_label = torch.Tensor(test_data).to(device), torch.Tensor(test_label).to(device)
+    train_data, train_label = torch.Tensor(train_data), torch.Tensor(train_label)
+    valid_data, valid_label = torch.Tensor(valid_data), torch.Tensor(valid_label) 
+    test_data, test_label = torch.Tensor(test_data), torch.Tensor(test_label) 
 
     if T:
-        train_transf = torch.Tensor(transformed[:train_index]).to(device)
-        valid_transf = torch.Tensor(transformed[train_index:valid_index]).to(device)
-        test_transf = torch.Tensor(transformed[valid_index:]).to(device)
+        train_transf = torch.Tensor(transformed[:train_index])
+        valid_transf = torch.Tensor(transformed[train_index:valid_index])
+        test_transf = torch.Tensor(transformed[valid_index:])
         train_data = torch.cat((train_data, train_transf),dim = 2)
         valid_data = torch.cat((valid_data, valid_transf),dim = 2)
         test_data = torch.cat((test_data, test_transf),dim = 2)
@@ -174,8 +173,8 @@ def PrepareNoisyDataset(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len = 10, 
     valid_dataset = utils.TensorDataset(valid_data, valid_label)
     test_dataset = utils.TensorDataset(test_data, test_label)
 
-    train_dataloader = utils.DataLoader(train_dataset, batch_size = BATCH_SIZE, shuffle=True, drop_last = True)
-    valid_dataloader = utils.DataLoader(valid_dataset, batch_size = BATCH_SIZE, shuffle=True, drop_last = True)
+    train_dataloader = utils.DataLoader(train_dataset, batch_size = batch_size, shuffle=True, drop_last = True)
+    valid_dataloader = utils.DataLoader(valid_dataset, batch_size = batch_size, shuffle=True, drop_last = True)
     test_dataloader = utils.DataLoader(test_dataset, batch_size = len(test_label), shuffle=False, drop_last = False)
 
     return train_dataloader, valid_dataloader, test_dataloader, max_val
@@ -183,17 +182,17 @@ def PrepareNoisyDataset(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len = 10, 
 
 
 
-def PrepareSampledDataset(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len = 10, pred_len = 1, train_proportion = 0.7,
+def SampledDataloader(matrix,samp, V , freqs , batch_size = 40, seq_len = 10, pred_len = 1, train_proportion = 0.7,
  valid_proportion = 0.2,T = False, sampling='', A = None, unsup = False):
     """
-    PrepareSampledDataset: perform the sampling procedure on the graph signals and create the dataloader object
+    SampledDataloader: perform the sampling procedure on the graph signals and create the dataloader object
 
     Args:
         matrix (pandas DataFrame): [description]
         samp (np array): [description]
         V (2D np array): [description]
         freqs (np array): [description]
-        BATCH_SIZE (int, optional): batch size. Defaults to 40.
+        batch_size (int, optional): batch size. Defaults to 40.
         seq_len (int, optional): size of historical data. Defaults to 10.
         pred_len (int, optional): number of future samples. Defaults to 1.
         train_proportion (float, optional): percentage of data used in training. Defaults to 0.7.
@@ -215,7 +214,7 @@ def PrepareSampledDataset(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len = 10
     max_val = matrix.max().max()
     matrix =  matrix / max_val
     
-    speed_sequences, speed_labels,speed_labels_unknown = [], [], []
+    recurrent_features, labels,labels_unknown = [], [], []
   
     if T :
         assert(freqs is not None)
@@ -250,55 +249,53 @@ def PrepareSampledDataset(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len = 10
                 
  
         
-        speed_sequences.append(features)
+        recurrent_features.append(features)
         time_pre = time.time()
         if T :
             assert(sampling =='reduce')
-            Vf = V[:, freqs]
-            n = Vf.shape[0]
-            Ds = np.zeros(n)
-            Ds[samp] = 1
-            Ds = np.diag(Ds)
-            Vft = Vf.conj().T
-            Ps = Ds[:, samp]
-            Tx = (Vft@Ps@(features.T)).T
+            Vf = V[:, freqs]            
+            Psi = np.zeros(Vf.shape[0])
+            Psi[samp] = 1
+            Psi = np.diag(Psi)
+            Psi = Psi[:, samp]
+            Tx = (Vft@Psi@(features.T)).T
             transformed.append(Tx)
         time_T += time.time()-time_pre
         if unsup:
-            speed_labels_unknown.append(features_unknown[i+seq_len+pred_len-1:i+seq_len+pred_len])             
+            labels_unknown.append(features_unknown[i+seq_len+pred_len-1:i+seq_len+pred_len])             
         
-        speed_labels.append(matrix.iloc[i+seq_len+pred_len-1:i+seq_len+pred_len].values)              
-    speed_sequences, speed_labels, speed_labels_unknown = np.asarray(speed_sequences), np.asarray(speed_labels),np.asarray(speed_labels_unknown)
+        labels.append(matrix.iloc[i+seq_len+pred_len-1:i+seq_len+pred_len].values)              
+    recurrent_features, labels, labels_unknown = np.asarray(recurrent_features), np.asarray(labels),np.asarray(labels_unknown)
     
     
     if T:
         transformed = np.asarray(transformed)
         
     
-    samp_size = speed_sequences.shape[0]    
+    samp_size = recurrent_features.shape[0]    
     index = np.arange(samp_size, dtype = int)   
 
     train_index = int(np.floor(samp_size * train_proportion))
     valid_index = int(np.floor(samp_size * ( train_proportion + valid_proportion)))
     
     if unsup:
-        train_data, train_label = speed_sequences[:train_index], speed_labels_unknown[:train_index]
-        valid_data, valid_label = speed_sequences[train_index:valid_index], speed_labels_unknown[train_index:valid_index]  
+        train_data, train_label = recurrent_features[:train_index], labels_unknown[:train_index]
+        valid_data, valid_label = recurrent_features[train_index:valid_index], labels_unknown[train_index:valid_index]  
        
     else:
 
-        train_data, train_label = speed_sequences[:train_index], speed_labels[:train_index]
-        valid_data, valid_label = speed_sequences[train_index:valid_index], speed_labels[train_index:valid_index]    
-    test_data, test_label = speed_sequences[valid_index:], speed_labels[valid_index:]
+        train_data, train_label = recurrent_features[:train_index], labels[:train_index]
+        valid_data, valid_label = recurrent_features[train_index:valid_index], labels[train_index:valid_index]    
+    test_data, test_label = recurrent_features[valid_index:], labels[valid_index:]
 
-    train_data, train_label = torch.Tensor(train_data).to(device), torch.Tensor(train_label).to(device)
-    valid_data, valid_label = torch.Tensor(valid_data).to(device), torch.Tensor(valid_label).to(device)
-    test_data, test_label = torch.Tensor(test_data).to(device), torch.Tensor(test_label).to(device)
+    train_data, train_label = torch.Tensor(train_data) , torch.Tensor(train_label) 
+    valid_data, valid_label = torch.Tensor(valid_data) , torch.Tensor(valid_label) 
+    test_data, test_label = torch.Tensor(test_data) , torch.Tensor(test_label) 
 
     if T:
-        train_transf = torch.Tensor(transformed[:train_index]).to(device)
-        valid_transf = torch.Tensor(transformed[train_index:valid_index]).to(device)
-        test_transf = torch.Tensor(transformed[valid_index:]).to(device)
+        train_transf = torch.Tensor(transformed[:train_index]) 
+        valid_transf = torch.Tensor(transformed[train_index:valid_index]) 
+        test_transf = torch.Tensor(transformed[valid_index:]) 
         train_data = torch.cat((train_data, train_transf),dim = 2)
         valid_data = torch.cat((valid_data, valid_transf),dim = 2)
         test_data = torch.cat((test_data, test_transf),dim = 2)
@@ -307,8 +304,8 @@ def PrepareSampledDataset(matrix,samp, V , freqs , BATCH_SIZE = 40, seq_len = 10
     valid_dataset = utils.TensorDataset(valid_data,  valid_label)
     test_dataset = utils.TensorDataset(test_data, test_label)
 
-    train_dataloader = utils.DataLoader(train_dataset, batch_size = BATCH_SIZE, shuffle=True, drop_last = True)
-    valid_dataloader = utils.DataLoader(valid_dataset, batch_size = BATCH_SIZE, shuffle=True, drop_last = True)
+    train_dataloader = utils.DataLoader(train_dataset, batch_size = batch_size, shuffle=True, drop_last = True)
+    valid_dataloader = utils.DataLoader(valid_dataset, batch_size = batch_size, shuffle=True, drop_last = True)
     test_dataloader = utils.DataLoader(test_dataset, batch_size = len(test_label), shuffle=False, drop_last = False)
 
     if T is not None:
@@ -358,18 +355,15 @@ def SplitData(data, label = None, seq_len = 10, pred_len = 1, train_proportion =
 
 
 
-def Dataloader(data, label, gpu = True,  BATCH_SIZE = 40, suffle = False):
+def Dataloader(data, label, gpu = True,  batch_size = 40, suffle = False):
     
     if gpu:
         data, label = torch.Tensor(data).cuda(), torch.Tensor(label ).cuda()
     else:
         data, label = torch.Tensor(data), torch.Tensor(label )
     dataset = utils.TensorDataset(data, label)    
-    dataloader = utils.DataLoader(dataset, batch_size = BATCH_SIZE, shuffle=suffle, drop_last = True)
+    dataloader = utils.DataLoader(dataset, batch_size = batch_size, shuffle=suffle, drop_last = True)
     return dataloader
-
-
-
 
 
 def Preprocessing_hop_interp(matrix, A ,sample):  
@@ -392,13 +386,11 @@ def Preprocessing_GFT(matrix,sample, V , freqs ):
 
     x = matrix.T[sample]
     Vf = V[:, freqs]
-    n = Vf.shape[0]
-    Ds = np.zeros(n)
-    Ds[sample] = 1
-    Ds = np.diag(Ds)
-    Vft = Vf.conj().T
-    Ps = Ds[:, sample]
-    Tx = (Vft@Ps@(x)).T
+    Psi = np.zeros(Vf.shape[0])
+    Psi[sample] = 1
+    Psi = np.diag(Psi)
+    Psi = Psi[:, sample]
+    Tx = (Vf.T@Psi@x).T
     return Tx
        
 class DataPipeline:
