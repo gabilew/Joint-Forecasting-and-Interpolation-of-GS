@@ -1,5 +1,5 @@
 ### training code ####
-### modified from https://github.com/zhiyongc/Graph_Convolutional_LSTM/blob/master/Code_V2/HGC_LSTM%20%26%20Experiments.ipynb
+
 import sys
 import time
 
@@ -13,7 +13,6 @@ toolbar_width=20
 
 def Train(model, train_dataloader, valid_dataloader, learning_rate = 1e-5, epochs = 300, patience = 10, 
 verbose=1, gpu = True, sample = None, optimizer = 'rmsprop'):
-
 
     if optimizer == 'rmsprop':
         optimizer = torch.optim.RMSprop(model.parameters(), lr = learning_rate)
@@ -37,8 +36,7 @@ verbose=1, gpu = True, sample = None, optimizer = 'rmsprop'):
     scheduler = model.schedule(optimizer)
 
     for epoch in range(epochs):
-        pre_time = time.time()
-      
+        pre_time = time.time()      
 
         try:
             data_size=train_dataloader.dataset.data_size
@@ -151,7 +149,6 @@ def Evaluate(model, dataloader, scale=1, pred_len = 1, gpu = True):
     if gpu: device='cuda' 
     else:  device= 'cpu'
 
-    tested_batch = 0
     losses_mse = []
     losses_l1 = []
     losses_mape = []
@@ -163,7 +160,6 @@ def Evaluate(model, dataloader, scale=1, pred_len = 1, gpu = True):
 
         outputs = model(inputs.to(device))
         outputs, y = torch.squeeze(outputs),  torch.squeeze(labels).to(device)
-
       
         loss_mse = torch.nn.MSELoss()(outputs*scale, y*scale).cpu().data
         loss_l1 = torch.nn.L1Loss()(outputs*scale, y*scale).cpu().data
@@ -195,3 +191,4 @@ def Evaluate(model, dataloader, scale=1, pred_len = 1, gpu = True):
     return [losses_l1, losses_mse, mean_l1,  np.mean(losses_mape), time.time()-pre_time]
 
 
+### modified from https://github.com/zhiyongc/Graph_Convolutional_LSTM/blob/master/Code_V2/HGC_LSTM%20%26%20Experiments.ipynb
