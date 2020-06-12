@@ -133,7 +133,7 @@ def NoisyDataloader(matrix,samp, V , freqs , batch_size = 40, seq_len = 10, pred
             Psi[samp] = 1
             Psi = np.diag(Psi)
             Psi = Psi[:, samp]
-            Tx = (Vft@Psi@(features.T)).T
+            Tx = (Vf.T@Psi@(features.T)).T
             transformed.append(Tx)             
             
         
@@ -207,7 +207,7 @@ def SampledDataloader(matrix,samp, V , freqs , batch_size = 40, seq_len = 10, pr
         [type]: [description]
     """
 
-    assert(sampling in ['', 'reduce', 'knn']
+    assert(sampling in ['', 'reduce', 'knn'])
   
     time_len = matrix.shape[0]
 
@@ -258,7 +258,7 @@ def SampledDataloader(matrix,samp, V , freqs , batch_size = 40, seq_len = 10, pr
             Psi[samp] = 1
             Psi = np.diag(Psi)
             Psi = Psi[:, samp]
-            Tx = (Vft@Psi@(features.T)).T
+            Tx = (Vf.T@Psi@(features.T)).T
             transformed.append(Tx)
         time_T += time.time()-time_pre
         if unsup:
