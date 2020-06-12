@@ -49,11 +49,9 @@ def DataloaderMissingVal(matrix,samp, V , freqs , batch_size = 40, seq_len = 10,
         if T :         
            
             Vf = V[:, freqs]
-            Psi = np.zeros(Vf.shape[0])
-            Psi[sample] = 1
-            Psi = np.diag(Psi)
-            Psi = Psi[:, sample]
-            Tx = (Vf.T@Ps@(features.T)).T
+            Psi = np.zeros((V.shape[0],features.T.shape[1]))
+            Psi[samp] = features.T
+            Tx = (Vf.T@Psi).T
             transformed.append(Tx)        
       
         
@@ -129,11 +127,9 @@ def NoisyDataloader(matrix,samp, V , freqs , batch_size = 40, seq_len = 10, pred
 
         if T :    
             Vf = V[:, freqs]            
-            Psi = np.zeros(Vf.shape[0])
-            Psi[samp] = 1
-            Psi = np.diag(Psi)
-            Psi = Psi[:, samp]
-            Tx = (Vf.T@Psi@(features.T)).T
+            Psi = np.zeros((V.shape[0],features.T.shape[1]))
+            Psi[samp] = features.T
+            Tx = (Vf.T@Psi).T
             transformed.append(Tx)             
             
         
@@ -199,7 +195,7 @@ def SampledDataloader(matrix,samp, V , freqs , batch_size = 40, seq_len = 10, pr
         valid_proportion (float, optional): percentage of data used in validation. Defaults to 0.2.
         T (bool, optional): if Fourier transform should be applied. Defaults to False.
         sampling (str, optional): method of sampling "reduce" returns data with only in-sample data wheres "knn" returns data interpolated
-         based on neighbors in adjacency. Defaults to ''.
+        based on neighbors in adjacency. Defaults to ''.
         A ([type], optional): Adjacency matrix. Must be passed only if sampling method is "knn" . Defaults to None.
         unsup (bool, optional): If the dataset will be used in a semi-supervised learning. Defaults to False.
 
@@ -253,13 +249,7 @@ def SampledDataloader(matrix,samp, V , freqs , batch_size = 40, seq_len = 10, pr
         time_pre = time.time()
         if T :
             assert(sampling =='reduce')
-            Vf = V[:, freqs]            
-            Psi = np.zeros(Vf.shape[0])
-            Psi[samp] = 1
-            Psi = np.diag(Psi)
-            Psi = Psi[:, samp]
-            Tx = (Vf.T@Psi@(features.T)).T
-            transformed.append(Tx)
+            transformed.append(Preprocessing_GFT(features,samp, V , freqs ))
         time_T += time.time()-time_pre
         if unsup:
             labels_unknown.append(features_unknown[i+seq_len+pred_len-1:i+seq_len+pred_len])             
@@ -355,12 +345,9 @@ def SplitData(data, label = None, seq_len = 10, pred_len = 1, train_proportion =
 
 
 
-def Dataloader(data, label, gpu = True,  batch_size = 40, suffle = False):
-    
-    if gpu:
-        data, label = torch.Tensor(data).cuda(), torch.Tensor(label ).cuda()
-    else:
-        data, label = torch.Tensor(data), torch.Tensor(label )
+def Dataloader(data, label,  batch_size = 40, suffle = False):
+   
+    data, label = torch.Tensor(data), torch.Tensor(label )
     dataset = utils.TensorDataset(data, label)    
     dataloader = utils.DataLoader(dataset, batch_size = batch_size, shuffle=suffle, drop_last = True)
     return dataloader
@@ -384,13 +371,11 @@ def MaxScaler(data):
 
 def Preprocessing_GFT(matrix,sample, V , freqs ):
 
-    x = matrix.T[sample]
+    x = matrix.T
     Vf = V[:, freqs]
-    Psi = np.zeros(Vf.shape[0])
-    Psi[sample] = 1
-    Psi = np.diag(Psi)
-    Psi = Psi[:, sample]
-    Tx = (Vf.T@Psi@x).T
+    Psi = np.zeros((V.shape[0],x.shape[1]))
+    Psi[sample] = x
+    Tx = (Vf.T@Psi).T
     return Tx
        
 class DataPipeline:
