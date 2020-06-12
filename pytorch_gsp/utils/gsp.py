@@ -66,8 +66,6 @@ class Reconstruction(nn.Module):
  
 
 
-
-
 def corrMatrix(A, x): 
     """
     corrMatrix compute an adjacency matrix with radial basis function entries 
@@ -91,14 +89,14 @@ def corrMatrix(A, x):
 
 def spectral_components(A, x, return_vectors = True,lap = True, norm = False):
     """
-    spectral_components:  compute the index of spectral components
+    spectral_components:  compute the index of spectral components with largest magnitude in a set of graph signals
 
     Args:
-        A ([type]): [description]
-        x ([type]): [description]
+        A (2d numpy array): adjacency matrix
+        x (2d numpy array): graph signals with time in the rows and nodes in the columns
         return_vectors (bool, optional): [description]. Defaults to True.
-        lap (bool, optional): [description]. Defaults to True.
-        norm (bool, optional): [description]. Defaults to False.
+        lap (bool, optional): If it is the spectral components are computed using the laplacian. Defaults to True.
+        norm (bool, optional): [description]. If the matrix should be normalized as $D^{-1/2}AD^{-1/2}$.
 
     Returns:
         [type]: [description]
@@ -141,21 +139,21 @@ def spectral_components(A, x, return_vectors = True,lap = True, norm = False):
         return F_global
 
 
-def Interpolator(V, sample,  freqs, freq = False):
-	
-    Vf = V[:, freqs]
+def Interpolator(V, sample,  freqs, freq = False):	
+ 
+    
     Psi = np.zeros(Vf.shape[0])
-    Psi[sample] = 1
+    Psi[sample] = 1 #transpose  of the sampling operator \Psi
     Psi = np.diag(Psi)   
     Psi = Psi[:, sample]
     I = np.diag(np.ones(Vf.shape[0]))
     inv = scipy.linalg.inv(Vf.T@Psi@Vf)
     if freq == False:
-        Q = inv@Vf.T@Ps
+        pseudoi = inv@Vf.T@Psi
     else:
-        Q = inv
+        pseudoi = inv
         
-    interp = np.dot(Vf, Q)
+    interp = np.dot(Vf, pseudoi)
     Psi_bar = I - Psi
     s = np.linalg.svd(np.dot(Psi_bar, Vf), compute_uv=False)
     if np.max(s)>1:
@@ -163,8 +161,6 @@ def Interpolator(V, sample,  freqs, freq = False):
         return None
       
     return interp
-
-
 
 
 
@@ -186,8 +182,6 @@ class KNN(nn.Module):
             neighbors = np.nonzero(A[node])[0]
             x[:,:,[node]] = torch.mean(x[:,:, neighbors], dim=-1)
         return x
-
-
 
 
 
