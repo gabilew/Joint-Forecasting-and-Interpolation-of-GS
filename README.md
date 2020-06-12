@@ -2,7 +2,8 @@
 
 
 ![image](https://github.com/gabilew/Spectral-Graph-GRU/blob/master/images/sggru.png)
-
+### Objective: 
+* Given a sampled graph signal (i.e.: a low granularity sensor network), interpolate the graph signal to obtain the entire network and make temporal prediction simultaneously.
 ### Dataset
 * Check out this [link](https://github.com/zhiyongc/Seattle-Loop-Data)   for downloading the Seattle loop dataset
 ### Environment
