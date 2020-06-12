@@ -18,18 +18,16 @@ class SpectralGraphForecast(nn.Module):
         V (numpy array): eingenvectors matrix graph signal processing model (i.e.: Laplacian matrix of the graph)
         sample (numpy array): indices of in sample nodes
         freqs (numpy array): frequency components to be used in interpolation
-        rnn (str, optional): predictive model: lstm, gru, . Defaults to 'gru'. 
+        rnn (str, optional): predictive model: lstm, gru, 1dconv. Defaults to 'gru'. 
     """
     def __init__(self, V, sample,freqs, rnn = 'gru'):
-        super(SpectralGraphForecast, self).__init__()
-  
+        super(SpectralGraphForecast, self).__init__()  
      
         self.N = V.shape[0] # number of nodes in the entire graph
         self.d = len(freqs) # number of frequencies
         self.n = len(sample) # number of samples
         self.sample = sample
-        if rnn == 'gru':
-     
+        if rnn == 'gru':     
             self.srnn = nn.GRU(self.d,self.d,1, batch_first=True)
             self.rnn =nn.GRU(self.n,self.n,1, batch_first=True)
         elif rnn == 'lstm':
@@ -129,7 +127,7 @@ class model(nn.Module):
         model: model class to use the SpectralGraphForecast layer 
 
         Args:
-        V (numpy array): eingenvectors matrix graph signal processing model (i.e.: Laplacian matrix of the graph)
+        V (numpy array): eingenvector matrix graph from signal processing model (i.e.: Laplacian matrix of the graph)
         sample (numpy array): indices of in sample nodes
         freqs (numpy array): frequency components to be used in interpolation
         layer (nn.Module): SpectralGraphForecast layer
@@ -185,7 +183,7 @@ class model2(nn.Module):
         model2: interepolates the signal before running the layer.
 
         Args:
-        V (numpy array): eingenvectors matrix graph signal processing model (i.e.: Laplacian matrix of the graph)
+        V (numpy array): eingenvector matrix graph from signal processing model (i.e.: Laplacian matrix of the graph)
         sample (numpy array): indices of in sample nodes
         freqs (numpy array): frequency components to be used in interpolation
         layer (nn.Module): layer
