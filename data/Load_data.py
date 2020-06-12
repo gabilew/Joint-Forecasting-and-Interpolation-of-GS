@@ -9,6 +9,7 @@ from sklearn.metrics.pairwise import rbf_kernel
 
 
 def USA_data(directory ):
+    """"TODO: include the GSOD dataset"""
     signals =  pd.read_csv( directory + 'Usa_temp.csv')
     if "Unnamed: 0" in signals.columns:
         signals.drop(columns="Unnamed: 0", inplace = True)
@@ -19,14 +20,18 @@ def USA_data(directory ):
 
 def Seattle_data(directory , binary=False):
     """
-    Seattle_data:  https://github.com/zhiyongc/Graph_Convolutional_LSTM/blob/master/Code_V2/HGC_LSTM%20%26%20Experiments.ipynb
+    Seattle_data:  
+    https://github.com/zhiyongc/Graph_Convolutional_LSTM/blob/master/Code_V2/HGC_LSTM%20%26%20Experiments.ipynb
 
     Args:
-        directory ([type]): [description]
-        binary (bool, optional): [description]. Defaults to False.
+        directory (str): directory of the seattle loop detector dataset
+        binary (bool, optional):  I the matrix should be binary or the RBF kernel should
+        be used on the . Defaults to False.
 
     Returns:
-        [type]: [description]
+        speed_matrix: graph signals with time in the rows and nodes in the columns
+        A: adjacency matrix
+        FFR: free flow reachability matrices
     """
     speed_matrix =  pd.read_pickle( directory + 'speed_matrix_2015',)
     A = np.load( directory + 'Loop_Seattle_2015_A.npy')
