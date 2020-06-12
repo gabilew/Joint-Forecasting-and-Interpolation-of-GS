@@ -1,7 +1,3 @@
-
-
-
-
 import torch.utils.data as utils
 import torch.nn.functional as F
 import torch
@@ -13,8 +9,6 @@ import pandas as pd
 import time
 from torch_gsp.utils.gsp import (spectral_components,  reconstruction,
                                  compute_sample)
-
-
 
 class SpectralGraphForecast(nn.Module):
     """
@@ -77,7 +71,7 @@ class SpectralGraphForecast(nn.Module):
 
 class SpectralGraphForecast2(nn.Module):
     """
-    SpectralGraphForecast2: combination of predictive models in both spectral 
+    SpectralGraphForecast2: combination of predictive models in both spectral and vertex domains
 
     Args:
         V (numpy array): eingenvectors matrix graph signal processing model (i.e.: Laplacian matrix of the graph)
@@ -131,7 +125,15 @@ class SpectralGraphForecast2(nn.Module):
 
 class model(nn.Module):
     def __init__(self, V, sample,freqs, layer, supervised = True, l1=0,l2=0, schedule_step=10):
-     
+        """
+        model: model class to use the SpectralGraphForecast layer 
+
+        Args:
+        V (numpy array): eingenvectors matrix graph signal processing model (i.e.: Laplacian matrix of the graph)
+        sample (numpy array): indices of in sample nodes
+        freqs (numpy array): frequency components to be used in interpolation
+        layer (nn.Module): SpectralGraphForecast layer
+        """
         super(model, self).__init__()
         
         self.N = V.shape[0]
@@ -161,11 +163,11 @@ class model(nn.Module):
                 regularization_loss += self.l2*torch.norm(y[:,self.sample]-out[:,self.sample])
         
         if not self.supervised:
-            ys =  y[:,self.sample]
+            ys =  y
             y = self.interpolate(ys)    
             y[:,self.sample] = ys
         return  torch.nn.MSELoss()(y,out) + regularization_loss
-        #return  (1-self.l1-self.l2)*torch.norm(y-out) + regularization_loss
+  
 
     def schedule(self,opt):
         for param_group in opt.param_groups:
@@ -179,7 +181,15 @@ class model(nn.Module):
 
 class model2(nn.Module):
     def __init__(self, V, sample,freqs, layer,l1=0,l2=0,schedule_step=10, supervised = True, unsqueeze=False):
-     
+         """
+        model2: interepolates the signal before running the layer.
+
+        Args:
+        V (numpy array): eingenvectors matrix graph signal processing model (i.e.: Laplacian matrix of the graph)
+        sample (numpy array): indices of in sample nodes
+        freqs (numpy array): frequency components to be used in interpolation
+        layer (nn.Module): layer
+        """
         super(model2, self).__init__()
         
         self.N = V.shape[0]
@@ -206,7 +216,7 @@ class model2(nn.Module):
             x1 = self.interpolate2(x)
             x1[:,self.sample] = x
         else: x1 = x
-        return x1#self.linear(x1)
+        return x1
     
     def loss(self,out,y):
         assert (self.l1+self.l2 <1)
@@ -219,11 +229,11 @@ class model2(nn.Module):
                 regularization_loss += self.l2*torch.norm(y[:,self.sample]-out[:,self.sample])
         
         if not self.supervised:
-            ys =  y[:,self.sample]
+            ys =  y
             y = self.interpolate(ys)    
             y[:,self.sample] = ys
         return  torch.nn.MSELoss()(y,out) + regularization_loss
-        #return  (1-self.l1-self.l2)*torch.norm(y-out) + regularization_loss
+    
 
     def schedule(self,opt):
     

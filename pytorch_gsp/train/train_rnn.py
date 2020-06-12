@@ -1,4 +1,4 @@
-### training code
+### training code ####
 ### modified from https://github.com/zhiyongc/Graph_Convolutional_LSTM/blob/master/Code_V2/HGC_LSTM%20%26%20Experiments.ipynb
 import sys
 import time
@@ -13,6 +13,7 @@ toolbar_width=20
 
 def Train(model, train_dataloader, valid_dataloader, learning_rate = 1e-5, epochs = 300, patience = 10, 
 verbose=1, gpu = True, sample = None, optimizer = 'rmsprop'):
+
 
     if optimizer == 'rmsprop':
         optimizer = torch.optim.RMSprop(model.parameters(), lr = learning_rate)
@@ -31,8 +32,6 @@ verbose=1, gpu = True, sample = None, optimizer = 'rmsprop'):
     time_epochs = []
     time_epochs_val = []
 
-
- 
     is_best_model = 0
     patient_epoch = 0
     scheduler = model.schedule(optimizer)
@@ -57,8 +56,6 @@ verbose=1, gpu = True, sample = None, optimizer = 'rmsprop'):
             sys.stdout.flush()
             sys.stdout.write("\b" * (toolbar_width+1))
 
-        
-   
         losses_train = []
         losses_valid = []
 
@@ -67,7 +64,6 @@ verbose=1, gpu = True, sample = None, optimizer = 'rmsprop'):
             if inputs.shape[0] != batch_size:
                 continue
 
-            
             model.zero_grad()            
             outputs = model(inputs.to(device))
             outputs, y = torch.squeeze(outputs),  torch.squeeze(labels).to(device)              
@@ -101,9 +97,7 @@ verbose=1, gpu = True, sample = None, optimizer = 'rmsprop'):
             outputs= model(inputs.to(device))
             outputs, y = torch.squeeze(outputs),  torch.squeeze(labels).to(device)        
             losses_valid.append(model.loss(outputs, y).cpu().data.numpy())
-            
-
-            
+     
         time_epochs_val.append(time.time()-pre_time)
         losses_epochs_train.append(np.mean(losses_train))
         losses_epochs_valid.append(np.mean(losses_valid))
@@ -111,8 +105,7 @@ verbose=1, gpu = True, sample = None, optimizer = 'rmsprop'):
         avg_losses_epoch_train = losses_epochs_train[-1]
         avg_losses_epoch_valid = losses_epochs_valid[-1] 
    
-        
-     
+  
         if avg_losses_epoch_valid >100000000000:
             print("Diverged")
             return (None,None)
@@ -135,8 +128,7 @@ verbose=1, gpu = True, sample = None, optimizer = 'rmsprop'):
       
         if verbose:
             sys.stdout.write("]")
-
-        
+  
         print(' train loss: {}, valid loss: {}, time: {}, lr: {}'.format( \
                 np.around(avg_losses_epoch_train, 6),\
                 np.around(avg_losses_epoch_valid, 6),\
@@ -159,19 +151,15 @@ def Evaluate(model, dataloader, scale=1, pred_len = 1, gpu = True):
     if gpu: device='cuda' 
     else:  device= 'cpu'
 
-
     tested_batch = 0
     losses_mse = []
     losses_l1 = []
     losses_mape = []
 
-
     for i,data in enumerate(dataloader):
         inputs, labels = data
-
         if inputs.shape[0] != batch_size:
             continue
-
 
         outputs = model(inputs.to(device))
         outputs, y = torch.squeeze(outputs),  torch.squeeze(labels).to(device)
@@ -185,15 +173,13 @@ def Evaluate(model, dataloader, scale=1, pred_len = 1, gpu = True):
         outputs = outputs*scale
         y  = y*scale
         
-   
         abs_diff =  np.abs((outputs-y))
         abs_y = np.abs(y)
         abs_diff=abs_diff[abs_y>1]
         abs_y=abs_y[abs_y>1]
         
         loss_mape = abs_diff/abs_y
-        loss_mape = np.mean(loss_mape)*100             
-        
+        loss_mape = np.mean(loss_mape)*100              
         
         losses_mse.append(loss_mse)
         losses_l1.append(loss_l1)
