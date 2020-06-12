@@ -5,9 +5,9 @@ import argparse
 import numpy as np
 import pandas as pd
 import time
-import __init
+
 from data.Load_data import Seattle_data
-from data.Dataloader import DataloaderMissingVal
+from data.Dataloader import *
 
 from pytorch_gsp.train.train_rnn import  Evaluate,  Train
 from pytorch_gsp.utils.gsp import ( greedy_e_opt, spectral_components)
@@ -27,11 +27,13 @@ print("device is " + device)
 def training_routine(args):
     lr = args.lr
     epochs = args.epochs
+    seq_len = args.seq_len
     pred_len = args.pred_len
     patience = args.patience
     name = args.save_name
-    speed_matrix, A, FFR = Seattle_data('torch-gsp/data/Seattle_Loop_Dataset/') #put seattle Loop dataset in this directory
-    speed_matrix = speed_matrix[:1000]
+    speed_matrix, A, FFR = Seattle_data('data/Seattle_Loop_Dataset/') #put seattle Loop dataset in this directory
+    
+   
     N = speed_matrix.shape[1]
 
     S = int(args.sample_perc*N/100)
@@ -63,12 +65,19 @@ def training_routine(args):
 
     S = len(sample)        
     pre_time = time.time()
-    train_dataloader, valid_dataloader, test_dataloader, max_speed = SampledDataloader(speed_matrix, sample, 
-                                                                                  V,freqs,T = True ,pred_len=pred_len, sampling='reduce')
+   
+    train, valid, test,max_value = SplitData(speed_matrix.values, label = None, seq_len = 10, pred_len = 1, train_proportion = 0.7,
+    valid_proportion = 0.2, shuffle = False)
+
+    pipeline = DataPipeline(sample,V,freqs,seq_len,pred_len)
+
+    train_dataloader = pipeline.fit(train)
+    valid_dataloader = pipeline.transform(valid)
+    test_dataloader = pipeline.transform(test,sample_label=False,batch_size = test.shape[0]-seq_len-pred_len,shuffle=False)
                                                                   
     print("Preprocessing time:", time.time()-pre_time)        
 
-
+  
     layer = SpectralGraphForecast(V, sample,freqs, rnn = 'gru')
     if args.supervised:
         sggru = model(V,sample,freqs, layer,l1=0,l2=0.0,supervised = True).to(device)
@@ -82,19 +91,19 @@ def training_routine(args):
     print("Spectral sample size: {}".format(F))
     print("Initial learning rate: {}".format(lr))
 
-    sggru,sggru_loss= Train(sggru ,train_dataloader, valid_dataloader, num_epochs = epochs, learning_rate = lr,patience=patience,min_delta=1e-6, sample = sample)
+    print(len(test_dataloader2))
+    sggru,sggru_loss= Train(sggru ,train_dataloader, valid_dataloader, epochs = epochs, learning_rate = lr,patience=patience ,sample = sample)
     print("Training time:", time.time()-pre_time)
     pre_time = time.time()
-    sggru_test = Evaluate(sggru.to(device), test_dataloader, max_speed )
+    sggru_test = Evaluate(sggru.to(device), test_dataloader, max_value )
     print("Test time:", time.time()-pre_time)
     name = 'sggru'
 
     loss = (sggru_loss,sggru_test)
-    os.makedirs("models_and_losses/", exsist_ok=True)
+    os.makedirs("models_and_losses/", exist_ok=True)
     torch.save(sggru, "models_and_losses/{}.pt".format(name))
     np.save("models_and_losses/{}.npy".format(name),loss)
      
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Semi-Supervised Prediction\n SeattleLoop dataset \n download link: https://github.com/zhiyongc/Seattle-Loop-Data ')
@@ -106,8 +115,9 @@ if __name__ == "__main__":
     parser.add_argument('--S-perc', type=int, default = 50, help='percentage of samples')
     parser.add_argument('--e-opt', action='store_true',help='if sampling is performed by E-optmal greedy algorithm')
     parser.add_argument('--sample-seed',type=int,default=1, help='number of run with uniformely random samples. Only used if --e-opt is False')
+    parser.add_argument('--seq-len', type=int,default=10, help='history length')
     parser.add_argument('--pred-len', type=int,default=1, help='prediction horizon')
-    parser.add_argument('--save-name', type=str, default='sggru_S50_F17_opt_pred1', help='name of file')
+    parser.add_argument('--save-name', type=str, default='sggru_S50_F53_opt_pred1', help='name of file')
     parser.add_argument('--supervised', action='store_true', help='if training is supervised or semi-supervised. Deafault is semi-supervised')
     args = parser.parse_args()
     training_routine(args)

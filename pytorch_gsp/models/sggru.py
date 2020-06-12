@@ -179,7 +179,8 @@ class model(nn.Module):
 
 class model2(nn.Module):
     def __init__(self, V, sample,freqs, layer,l1=0,l2=0,schedule_step=10, supervised = True, unsqueeze=False):
-         """
+        super(model2, self).__init__()
+        """
         model2: interepolates the signal before running the layer.
 
         Args:
@@ -188,8 +189,6 @@ class model2(nn.Module):
         freqs (numpy array): frequency components to be used in interpolation
         layer (nn.Module): layer
         """
-        super(model2, self).__init__()
-        
         self.N = V.shape[0]
         self.d = len(freqs)
         self.n = len(sample)
