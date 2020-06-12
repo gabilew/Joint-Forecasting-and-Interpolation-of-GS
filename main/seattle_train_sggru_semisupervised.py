@@ -66,7 +66,8 @@ def training_routine(args):
     S = len(sample)        
     pre_time = time.time()
    
-    train, valid, test,max_value = SplitData(speed_matrix.values, label = None, seq_len = 10, pred_len = 1, train_proportion = 0.7,
+    train, valid, test,max_value = SplitData(speed_matrix.values, label = None, seq_len = 10,
+                                             pred_len = 1, train_proportion = 0.7,
     valid_proportion = 0.2, shuffle = False)
 
     pipeline = DataPipeline(sample,V,freqs,seq_len,pred_len)
@@ -92,7 +93,8 @@ def training_routine(args):
     print("Initial learning rate: {}".format(lr))
 
     print(len(test_dataloader2))
-    sggru,sggru_loss= Train(sggru ,train_dataloader, valid_dataloader, epochs = epochs, learning_rate = lr,patience=patience ,sample = sample)
+    sggru,sggru_loss= Train(sggru ,train_dataloader, valid_dataloader, epochs = epochs, 
+                            learning_rate = lr,patience=patience ,sample = sample)
     print("Training time:", time.time()-pre_time)
     pre_time = time.time()
     sggru_test = Evaluate(sggru.to(device), test_dataloader, max_value )
