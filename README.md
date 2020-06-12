@@ -12,3 +12,6 @@
 ```
 python setup.py install
 ```
+Reference:
+
+Lewenfus, G., Martins, W. A., Chatzinotas, S., & Ottersten, B. (2020). Joint Forecasting and Interpolation of Graph Signals Using Deep Learning. arXiv preprint arXiv:2006.01536.
