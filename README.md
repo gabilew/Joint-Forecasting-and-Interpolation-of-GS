@@ -9,6 +9,9 @@
 * Move the dataset to data/Seattle_Loop_Dataset
 ### Environment
 * Python 3.6.1 and PyTorch 1.4.0
+```
+conda install pytorch  cudatoolkit=10.0 -c pytorch
+```
 * Installation: 
 ```
 python setup.py install
