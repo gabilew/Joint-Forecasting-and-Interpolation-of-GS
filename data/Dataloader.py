@@ -5,6 +5,7 @@ import pandas as pd
 import torch
 import torch.utils.data as utils
 import sys
+import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__))) 
 from torch_gsp.utils.gsp import compute_sample, complement
 
