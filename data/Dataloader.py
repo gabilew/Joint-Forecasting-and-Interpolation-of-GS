@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 import torch.utils.data as utils
 
-from pytorch_gsp.utils.gsp import compute_sample, complement
+from pytorch_gsp.utils.gsp import  complement
 
 
 def PrepareSequence(data, seq_len = 10, pred_len = 1):
