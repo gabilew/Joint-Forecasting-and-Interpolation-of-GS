@@ -4,10 +4,8 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.utils.data as utils
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__))) 
-from torch_gsp.utils.gsp import compute_sample, complement
+
+from pytorch_gsp.utils.gsp import compute_sample, complement
 
 
 def PrepareSequence(data, seq_len = 10, pred_len = 1):
