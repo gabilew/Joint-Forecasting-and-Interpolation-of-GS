@@ -99,6 +99,19 @@ class DataPipeline:
         self.gft = gft
 
     def fit(self,train_data,sample_label = True, batch_size=40, shuffle=True):
+        """
+        fit: build dataloader for training data
+
+        Args:
+            train_data (numpy array): train data
+            sample_label (bool, optional): If labels should be sampled for a semisupervised
+             learning. Defaults to True.
+            batch_size (int, optional): batch size. Defaults to 40.
+            shuffle (bool, optional): If samples should be shuffled. Defaults to True.
+
+        Returns:
+            pytorch Dataloader: train data prepared for training
+        """
     
         train_X, train_y = PrepareSequence(train_data, seq_len = self.seq_len, pred_len = self.pred_len)
 
@@ -114,6 +127,19 @@ class DataPipeline:
         return Dataloader(train_X, train_y, batch_size, shuffle)
 
     def transform(self, data, sample_label = True, batch_size=40,shuffle=True):
+        """
+        transform: build dataloader for validation and test data
+
+        Args:
+            train_data (numpy array): train data
+            sample_label (bool, optional): If validation labels should be sampled for a
+             semisupervised learning. Defaults to True.
+            batch_size (int, optional): batch size. Defaults to 40.
+            shuffle (bool, optional): If samples should be shuffled. Defaults to True.
+
+        Returns:
+            pytorch Dataloader: train data prepared for training
+        """
         
         X, y = PrepareSequence(data, seq_len = self.seq_len, pred_len = self.pred_len)
 
