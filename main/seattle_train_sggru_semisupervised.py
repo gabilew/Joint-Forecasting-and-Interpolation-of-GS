@@ -20,11 +20,19 @@ def n_params(model):
     return np.sum(params)
 
 print(torch.__version__)
-device = 'cuda' if torch.cuda.is_available else 'cpu'
-print("device is " + device)
+
 
 
 def training_routine(args):
+    
+
+    device = 'cuda' if torch.cuda.is_available else 'cpu'
+    if args.device == 'cuda' and device == 'cpu':
+        print("cuda is not available, device set to cpu")
+    else:
+        assert (args.device in ['cpu','cuda'])
+        device = args.device
+
     lr = args.lr
     epochs = args.epochs
     seq_len = args.seq_len
@@ -122,6 +130,7 @@ if __name__ == "__main__":
     parser.add_argument('--pred-len', type=int,default=1, help='prediction horizon')
     parser.add_argument('--save-name', type=str, default='sggru_S50_F53_opt_pred1', help='name of file')
     parser.add_argument('--supervised', action='store_true', help='if training is supervised or semi-supervised. Deafault is semi-supervised')
+    parser.add_argument('--device', type=str, default='cuda', help='devices: cuda or cpu')
     args = parser.parse_args()
     training_routine(args)
 
