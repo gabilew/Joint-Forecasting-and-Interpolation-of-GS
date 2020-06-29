@@ -52,6 +52,7 @@ def training_routine(args):
         freqs = np.arange(0,F,1)
 
     if args.e_opt:
+        print("Using e-optimal greedy algorithm")
         if args.sample_perc == 25:
             sample = np.load( 'data/Seattle_Loop_Dataset/sample_opt25.npy')[0]
         elif args.sample_perc == 50:
@@ -92,7 +93,7 @@ def training_routine(args):
     print("Spectral sample size: {}".format(F))
     print("Initial learning rate: {}".format(lr))
 
-    print(len(test_dataloader2))
+   
     sggru,sggru_loss= Train(sggru ,train_dataloader, valid_dataloader, epochs = epochs, 
                             learning_rate = lr,patience=patience ,sample = sample)
     print("Training time:", time.time()-pre_time)
