@@ -7,8 +7,7 @@ from torch.nn.parameter import Parameter
 import numpy as np
 import pandas as pd
 import time
-from torch_gsp.utils.gsp import (spectral_components,  reconstruction,
-                                 compute_sample)
+from pytorch_gsp.utils.gsp import (spectral_components,  Reconstruction)
 
 class SpectralGraphForecast(nn.Module):
     """
