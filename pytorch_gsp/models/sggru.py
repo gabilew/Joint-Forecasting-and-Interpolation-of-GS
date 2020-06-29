@@ -37,8 +37,8 @@ class SpectralGraphForecast(nn.Module):
             self.rnn =nn.Conv1d(self.n,self.n,1, batch_first=True)
 
         if self.n != self.N:
-            self.interpolate = reconstruction(V,sample,freqs, domain='freq')
-            self.interpolate2 = reconstruction(V,sample,freqs, domain='vertex')
+            self.interpolate = Reconstruction(V,sample,freqs, domain='freq')
+            self.interpolate2 = Reconstruction(V,sample,freqs, domain='vertex')
         
         self.linear = nn.Linear(self.N*2,self.N)
       
@@ -94,8 +94,8 @@ class SpectralGraphForecast2(nn.Module):
             self.rnn =nn.LSTM(self.n,self.n,1, batch_first=True)
 
         if self.n != self.N:
-            self.interpolate = reconstruction(V,sample,freqs, domain='freq')
-            self.interpolate2 = reconstruction(V,sample,freqs, domain='vertex')
+            self.interpolate = Reconstruction(V,sample,freqs, domain='freq')
+            self.interpolate2 = Reconstruction(V,sample,freqs, domain='vertex')
         
    
         self.w = Parameter(torch.Tensor(self.N), requires_grad=True)
@@ -143,7 +143,7 @@ class model(nn.Module):
         self.l2 = l2
         self.schedule_step = schedule_step
         if not supervised:
-            self.interpolate = reconstruction(V,sample,freqs, domain='vertex')
+            self.interpolate = Reconstruction(V,sample,freqs, domain='vertex')
         
     def forward(self, input):
         
@@ -198,9 +198,9 @@ class model2(nn.Module):
         self.l1 = l1
         self.l2 = l2
         self.schedule_step = schedule_step
-        self.interpolate2 = reconstruction(V,sample,freqs, domain='vertex')
+        self.interpolate2 = Reconstruction(V,sample,freqs, domain='vertex')
         if not supervised:
-            self.interpolate = reconstruction(V,sample,freqs, domain='vertex')
+            self.interpolate = Reconstruction(V,sample,freqs, domain='vertex')
         self.linear = torch.nn.Linear(self.N,self.N)
         
     def forward(self, input):
